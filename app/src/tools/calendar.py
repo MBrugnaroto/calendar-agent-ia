@@ -1,11 +1,17 @@
 from typing import Type
-from datetime import datetime, timedelta
 
 from pydantic import BaseModel
 from langchain_core.tools import BaseTool
 
-from src.functions.calendar import get_calendar_events, create_calendar_event, delete_calendar_event
-from src.schemas.calendar import (
+from src.functions.calendar import (
+    get_calendar_events,
+    create_calendar_event,
+    delete_calendar_event,
+    get_future_time,
+    get_current_time,
+    set_specific_time
+)
+from src.models.calendar_input import (
     CalendarEventSearchInput,
     CalendarEventCreatorInput,
     CurrentTimeInput,
@@ -94,7 +100,7 @@ class CurrentTimeTool(BaseTool):
     args_schema: Type[BaseModel] = CurrentTimeInput
 
     def _run(self):
-        return (datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+        return get_current_time()
 
     def _arun(self):
         raise NotImplementedError("convert_time does not support async")
@@ -115,18 +121,7 @@ class TimeDeltaTool(BaseTool):
         delta_minutes: int = 0,
         delta_seconds: int = 0
     ):
-        current = (
-            datetime.now()
-            .replace(hour=delta_hours or 0)
-            .replace(minute=delta_minutes or 0)
-            .replace(second=delta_seconds or 0)
-        )
-        return (
-            current + timedelta(
-                days=delta_days or 0,
-                hours=3
-            )
-        ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return get_future_time(delta_days, delta_hours, delta_minutes, delta_seconds)
 
     def _arun(self):
         raise NotImplementedError("get_future_time does not support async")
@@ -141,15 +136,14 @@ class SpecificTimeTool(BaseTool):
     args_schema: Type[BaseModel] = SpecificTimeInput
 
     def _run(
-            self,
-            year: int,
-            month: int,
-            day: int,
-            hour: int,
-            minute: int
+        self,
+        year: int,
+        month: int,
+        day: int,
+        hour: int,
+        minute: int
     ):
-        specific_time = datetime(year, month, day, hour, minute)
-        return specific_time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        return set_specific_time(year, month, day, hour, minute)
 
     def _arun(self):
         raise NotImplementedError("set_specific_time does not support async")

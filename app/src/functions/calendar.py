@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
+
 from googleapiclient.errors import HttpError
-from src.schemas.calendar import (
+from src.models.calendar_output import (
     CalendarEventSearchOutput,
     CalendarEventCreatorOutput
 )
@@ -83,3 +85,26 @@ def delete_calendar_event(service, event_id):
         return "Evento deletado com sucesso"
     except HttpError as error:
         raise HttpError(f"An error occurred: {error}")
+
+
+def get_current_time():
+    return (datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+
+
+def get_future_time(delta_days, delta_hours, delta_minutes, delta_seconds):
+    current = (
+        datetime.now()
+        .replace(hour=delta_hours or 0)
+        .replace(minute=delta_minutes or 0)
+        .replace(second=delta_seconds or 0)
+    )
+    return (
+        current + timedelta(
+            days=delta_days or 0,
+            hours=3
+        )
+    ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def set_specific_time(year, month, day, hour, minute):
+    return datetime(year, month, day, hour, minute).strftime("%Y-%m-%dT%H:%M:%S%z")

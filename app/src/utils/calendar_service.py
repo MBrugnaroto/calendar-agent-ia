@@ -1,4 +1,4 @@
-import os.path
+import os
 
 from dataclasses import dataclass, field
 
@@ -15,11 +15,11 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 class Calendar():
     creds: str = field(default=None, init=False)
     token_path: str = field(
-        default="./src/credentials/token.json",
+        default=os.getcwd()+"/calendar-agent-ia/app/src/credentials/token.json",
         init=False
     )
     credentials_path: str = field(
-        default="./src/credentials/credentials.json",
+        default=os.getcwd()+"/calendar-agent-ia/app/src/credentials/credentials.json",
         init=False
     )
     service: build = field(default=None, init=False)
