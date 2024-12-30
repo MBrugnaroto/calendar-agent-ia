@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "calendar_assistant"
+version = "0.1.0"
+description = "LangGraph project for deployment to LangGraph Cloud"
+authors = [
+    "mateus.brugnaroto"
+]
+packages = [
+    { include = "crew" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9.0,<3.13"
+langgraph = "^0.2.0"
+langchain_anthropic = "^0.1.0"
+langchain_core = "^0.2.0"
+langchain_openai = "^0.1.0"
+tavily-python = "^0.3.0"
+langchain_community = "^0.2.0"
+google-api-core = "2.24.0"
+google-api-python-client = "2.156.0"
+google-auth = "2.37.0"
+google-auth-httplib2 = "0.2.0"
+google-auth-oauthlib = "1.2.1"
+googleapis-common-protos = "1.66.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

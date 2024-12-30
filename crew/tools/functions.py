@@ -1,16 +1,25 @@
+from langchain.tools import tool
 from datetime import datetime, timedelta
-
 from googleapiclient.errors import HttpError
-from src.models.calendar_output import (
+from crew.tools.models import (
+    CalendarEventSearchInput,
+    CalendarEventCreatorInput,
+    CalendarEventDeleteInput,
+    CurrentTimeInput,
+    TimeDeltaInput,
+    SpecificTimeInput,
     CalendarEventSearchOutput,
     CalendarEventCreatorOutput
 )
-
+from crew.utils.calendar_service import Calendar
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
+service = Calendar().service
 
-def get_calendar_events(service, max_result, start_event, end_event):
+
+@tool("get-calendar-events-tool", args_schema=CalendarEventSearchInput)
+def get_calendar_events(max_result, start_event, end_event):
     try:
         events_result = (
             service.events()
@@ -46,7 +55,8 @@ def get_calendar_events(service, max_result, start_event, end_event):
         raise HttpError(f"An error occurred: {error}")
 
 
-def create_calendar_event(service, title, start_event, end_event, timezone):
+@tool("create-calendar-events-tool", args_schema=CalendarEventCreatorInput)
+def create_calendar_event(title, start_event, end_event, timezone):
     event = {
         'summary': title,
         'start': {
@@ -78,7 +88,8 @@ def create_calendar_event(service, title, start_event, end_event, timezone):
         raise HttpError(f"An error occurred: {error}")
 
 
-def delete_calendar_event(service, event_id):
+@tool("delete-calendar-events-tool", args_schema=CalendarEventDeleteInput)
+def delete_calendar_event(event_id):
     try:
         service.events().delete(calendarId='primary', eventId=event_id).execute()
 
@@ -87,11 +98,18 @@ def delete_calendar_event(service, event_id):
         raise HttpError(f"An error occurred: {error}")
 
 
+@tool("get-current-time-tool", args_schema=CurrentTimeInput)
 def get_current_time():
     return (datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
 
 
-def get_future_time(delta_days, delta_hours, delta_minutes, delta_seconds):
+@tool("get-future-time-tool", args_schema=TimeDeltaInput)
+def get_future_time(
+    delta_days: int = 0,
+    delta_hours: int = 0,
+    delta_minutes: int = 0,
+    delta_seconds: int = 0
+):
     current = (
         datetime.now()
         .replace(hour=delta_hours or 0)
@@ -106,5 +124,6 @@ def get_future_time(delta_days, delta_hours, delta_minutes, delta_seconds):
     ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
+@tool("set-specific-time-tool", args_schema=SpecificTimeInput)
 def set_specific_time(year, month, day, hour, minute):
     return datetime(year, month, day, hour, minute).strftime("%Y-%m-%dT%H:%M:%S%z")
