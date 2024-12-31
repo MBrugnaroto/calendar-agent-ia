@@ -1,12 +1,9 @@
 import os
 from datetime import datetime
-from typing_extensions import Literal
 
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
-from langgraph.graph import END
-from langgraph.types import Command
 
 from crew.tools import tools_list
 from crew.prompts.calendar_assistant import CALENDAR_ASSISTANT_PROMPT
@@ -26,19 +23,22 @@ def should_continue(state: AgentState) -> str:
     messages = state["messages"]
     last_message = messages[-1]
 
+    if "AudioInfo" in last_message.content:
+        return "transcribe"
+
     if not last_message.tool_calls:
         return "end"
-    else:
-        return "continue"
+
+    return "continue"
 
 
-def get_next_node(last_message: BaseMessage, goto: str) -> str:
+def is_audio(last_message: BaseMessage) -> str:
     if "TRANSCRIBE_AUDIO" in last_message.content:
-        return goto
-    return END
+        return True
+    return False
 
 
-def calendar_node(state: AgentState) -> Command[Literal["transcribe_audio", END]]:  # type: ignore
+def calendar_node(state: AgentState):
     current_date: str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     current_week: str = datetime.now().strftime('%A')
 
@@ -55,17 +55,12 @@ def calendar_node(state: AgentState) -> Command[Literal["transcribe_audio", END]
     caledar_agent = model.bind_tools(tools_list)
     result = caledar_agent.invoke(messages)
 
-    goto = get_next_node(result, "transcribe_audio")
-
-    return Command(
-        update={
-            "messages": result if goto == END else state
-        },
-        goto=goto
-    )
+    return {
+        "messages": state["messages"] if is_audio(result) else result
+    }
 
 
-def transcribe_audio_node(state: AgentState) -> Command[Literal["calendar_agent"]]:
+def transcribe_audio_node(state: AgentState):
     from openai import OpenAI
 
     audio: AudioInfo = eval(state['messages'][-1].content)
@@ -76,12 +71,9 @@ def transcribe_audio_node(state: AgentState) -> Command[Literal["calendar_agent"
         file=audio_file,
     )
 
-    return Command(
-        update={
-            "messages": [HumanMessage(transcription.text)]
-        },
-        goto="calendar_agent"
-    )
+    return {
+        "messages": [HumanMessage(transcription.text)]
+    }
 
 
 calendar_tool_node = ToolNode(tools_list)

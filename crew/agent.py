@@ -19,10 +19,12 @@ workflow.add_conditional_edges(
     "calendar_agent",
     should_continue,
     {
+        "transcribe": "transcribe_audio",
         "continue": "calendar_actions",
         "end": END,
     },
 )
+workflow.add_edge("transcribe_audio", "calendar_agent")
 workflow.add_edge("calendar_actions", "calendar_agent")
 
 graph = workflow.compile()

@@ -15,11 +15,11 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 class Calendar():
     creds: str = field(default=None, init=False)
     token_path: str = field(
-        default="/home/brugnaroto/Workspace/scripts-repository/agents/langgraph-example-pyproject/credentials/token.json",
+        default="/home/brugnaroto/Workspace/scripts-repository/agents/calendar-agent-ia/credentials/token.json",
         init=False
     )
     credentials_path: str = field(
-        default="/home/brugnaroto/Workspace/scripts-repository/agents/langgraph-example-pyproject/credentials/credentials.json",
+        default="/home/brugnaroto/Workspace/scripts-repository/agents/calendar-agent-ia/credentials/credentials.json",
         init=False
     )
     service: build = field(default=None, init=False)
