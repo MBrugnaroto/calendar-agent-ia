@@ -20,7 +20,7 @@ workflow.add_conditional_edges(
     should_continue,
     {
         "transcribe": "transcribe_audio",
-        "continue": "calendar_actions",
+        "execute_tool": "calendar_actions",
         "end": END,
     },
 )

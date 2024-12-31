@@ -16,6 +16,7 @@ from crew.utils.audio import AudioInfo
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
 MODEL = ChatOpenAI(temperature=0, model=OPENAI_MODEL, api_key=OPENAI_API_KEY)
+CALENDAR_AGENT = MODEL.bind_tools(tools_list)
 TIMEZONE = Calendar().get_calendar_timezone()
 
 
@@ -29,7 +30,7 @@ def should_continue(state: AgentState) -> str:
     if not last_message.tool_calls:
         return "end"
 
-    return "continue"
+    return "execute_tool"
 
 
 def is_audio(last_message: BaseMessage) -> str:
@@ -51,9 +52,7 @@ def calendar_node(state: AgentState):
         ))
     ] + state["messages"]
 
-    model = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
-    caledar_agent = model.bind_tools(tools_list)
-    result = caledar_agent.invoke(messages)
+    result = CALENDAR_AGENT.invoke(messages)
 
     return {
         "messages": state["messages"] if is_audio(result) else result
